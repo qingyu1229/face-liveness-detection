@@ -24,35 +24,30 @@ export const config = {
     
     // 眨眼检测
     blink: {
-        closeThreshold: 0.6,    // 闭眼比例阈值
-        openThreshold: 0.8      // 睁眼比例阈值
+        threshold: 0.6      // 闭眼比例阈值
     },
     
     // 张嘴检测
     mouth: {
-        openThreshold: 0.07,    // 张嘴阈值
-        closeThreshold: 0.02    // 闭嘴阈值
+        threshold: 0.07     // 张嘴阈值
     },
     
-    // 转头检测
+    // 转头/点头检测
     head: {
-        turnLeft: {
-            turnThreshold: 0.05,
-            returnThreshold: 0.03
-        },
-        turnRight: {
-            turnThreshold: 0.05,
-            returnThreshold: 0.03
-        },
-        nod: {
-            downThreshold: 0.03,    // 低头阈值
-            returnThreshold: 0.025  // 回正阈值
-        }
+        turnLeft: 0.05,     // 左转头阈值
+        turnRight: 0.015,   // 右转头阈值
+        nod: 0.03           // 点头阈值
     },
     
     // 动作列表
     actions: ['blink', 'openMouth', 'turnLeft', 'turnRight', 'nod'],
     
+    // 动作顺序: 'random' 随机 | 'fixed' 固定
+    actionOrder: 'random',
+    
     // 是否启用调试日志
-    debug: true
+    debug: false,
+    
+    // 是否显示面部关键点
+    showLandmarks: false
 };

@@ -1,16 +1,49 @@
 {
   "name": "face-liveness-detection",
   "version": "1.0.0",
-  "description": "A frontend-only solution for face liveness detection",
-  "main": "index.js",
-  "scripts": {
-    "start": "vite --host",
-    "build": "vite build",
-    "serve": "vite preview"
+  "description": "A frontend-only solution for face liveness detection using MediaPipe Face Mesh",
+  "main": "dist/face-liveness-detection.umd.js",
+  "module": "dist/face-liveness-detection.es.js",
+  "types": "src/js/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/face-liveness-detection.es.js",
+      "require": "./dist/face-liveness-detection.umd.js",
+      "types": "./src/js/index.d.ts"
+    }
   },
-  "keywords": ["face", "liveness", "detection"],
+  "files": [
+    "dist",
+    "src/js/index.d.ts",
+    "src/css/*.css"
+  ],
+  "scripts": {
+    "dev": "vite --mode demo",
+    "build": "vite build",
+    "build:demo": "vite build --mode demo",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "face",
+    "liveness",
+    "detection",
+    "mediapipe",
+    "face-mesh",
+    "blink",
+    "活体检测",
+    "人脸识别"
+  ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "peerDependencies": {
+    "@mediapipe/face_mesh": "^0.4.0",
+    "@mediapipe/camera_utils": "^0.3.0"
+  },
   "devDependencies": {
     "vite": "^4.0.0"
   },

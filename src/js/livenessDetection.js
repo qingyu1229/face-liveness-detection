@@ -11,9 +11,21 @@ export class LivenessDetector {
         this.resultContainer = options.resultContainer;
         this.capturedImage = options.capturedImage;
         
+        // 事件回调
+        this.onComplete = options.onComplete || null;
+        this.onActionComplete = options.onActionComplete || null;
+        this.onError = options.onError || null;
+        
+        this._init();
+    }
+    
+    _init() {
         // 动作列表（从配置读取）
         this.actions = [...config.actions];
-        this.shuffleActions();
+        // 根据配置决定是否随机打乱
+        if (config.actionOrder === 'random') {
+            this.shuffleActions();
+        }
         
         // 当前动作索引
         this.currentActionIndex = -1;
@@ -33,15 +45,11 @@ export class LivenessDetector {
         this.captureMode = false;
         this.captureCheckCount = 0;
         this.capturedBase64 = null;
+        this.isRunning = false;
         
         // 参考值
         this.referenceValues = {
             nosePosition: null,
-            eyeClosed: false,
-            mouthOpened: false,
-            turnedLeft: false,
-            turnedRight: false,
-            nodded: false,      // 已点头
             maxEAR: 0,
             earHistory: []
         };
@@ -102,19 +110,40 @@ export class LivenessDetector {
     }
     
     async start() {
+        this.isRunning = true;
         try {
             await initializeFaceDetection();
             
             // 设置检测结果回调
-            setOnResults((results) => this.onFaceResults(results));
+            setOnResults((results) => {
+                if (this.isRunning) {
+                    this.onFaceResults(results);
+                }
+            });
             
             // 启动摄像头
             await startCamera(this.video);
             
         } catch (error) {
             console.error('启动失败:', error);
+            if (this.onError) this.onError(error);
             throw error;
         }
+    }
+    
+    // 终止检测
+    stop() {
+        this.isRunning = false;
+        stopCamera();
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        window.speechSynthesis.cancel();
+    }
+    
+    // 重置检测
+    reset() {
+        this.stop();
+        this._init();
+        this.initStatusDisplay();
     }
     
     onFaceResults(results) {
@@ -133,8 +162,10 @@ export class LivenessDetector {
                 setTimeout(() => this.showCurrentAction(), 1500);
             }
             
-            // 绘制面部关键点（调试用）
-            this.drawLandmarks(landmarks);
+            // 绘制面部关键点（可配置）
+            if (config.showLandmarks) {
+                this.drawLandmarks(landmarks);
+            }
             
             // 采集模式检测正对
             if (this.captureMode) {
@@ -191,12 +222,9 @@ export class LivenessDetector {
         
         if (config.debug) console.log(`鼻子偏移 X: ${deltaX.toFixed(3)}, Y: ${deltaY.toFixed(3)}`);
         
-        // 左转头: 转头后回正才算完成
+        // 左转头: 达到阈值即完成
         if (targetAction === 'turnLeft') {
-            if (deltaX > config.head.turnLeft.turnThreshold) {
-                this.referenceValues.turnedLeft = true;
-                if (config.debug) console.log('检测到左转!');
-            } else if (this.referenceValues.turnedLeft && Math.abs(deltaX) < config.head.turnLeft.returnThreshold) {
+            if (deltaX > config.head.turnLeft) {
                 if (!this.detectionState.turnLeft) {
                     if (config.debug) console.log('左转头完成!');
                     this.completeCurrentAction('turnLeft');
@@ -204,12 +232,9 @@ export class LivenessDetector {
             }
         }
         
-        // 右转头: 转头后回正才算完成
+        // 右转头: 达到阈值即完成
         if (targetAction === 'turnRight') {
-            if (deltaX < -config.head.turnRight.turnThreshold) {
-                this.referenceValues.turnedRight = true;
-                if (config.debug) console.log('检测到右转!');
-            } else if (this.referenceValues.turnedRight && Math.abs(deltaX) < config.head.turnRight.returnThreshold) {
+            if (deltaX < -config.head.turnRight) {
                 if (!this.detectionState.turnRight) {
                     if (config.debug) console.log('右转头完成!');
                     this.completeCurrentAction('turnRight');
@@ -217,12 +242,9 @@ export class LivenessDetector {
             }
         }
         
-        // 点头: 低头后抬头才算完成
+        // 点头: 达到阈值即完成
         if (targetAction === 'nod') {
-            if (deltaY > config.head.nod.downThreshold) {
-                this.referenceValues.nodded = true;
-                if (config.debug) console.log('检测到低头!');
-            } else if (this.referenceValues.nodded && Math.abs(deltaY) < config.head.nod.returnThreshold) {
+            if (deltaY > config.head.nod) {
                 if (!this.detectionState.nod) {
                     if (config.debug) console.log('点头完成!');
                     this.completeCurrentAction('nod');
@@ -267,13 +289,10 @@ export class LivenessDetector {
         
         const ratio = this.referenceValues.maxEAR > 0 ? avgEAR / this.referenceValues.maxEAR : 1;
         
-        if (config.debug) console.log(`EAR: ${avgEAR.toFixed(3)}, 最大: ${this.referenceValues.maxEAR.toFixed(3)}, 比例: ${ratio.toFixed(3)}, 闭眼: ${this.referenceValues.eyeClosed}`);
+        if (config.debug) console.log(`EAR: ${avgEAR.toFixed(3)}, 最大: ${this.referenceValues.maxEAR.toFixed(3)}, 比例: ${ratio.toFixed(3)}`);
         
-        // 检测眨眼: 比例低于阈值认为闭眼
-        if (ratio < config.blink.closeThreshold) {
-            this.referenceValues.eyeClosed = true;
-            if (config.debug) console.log('检测到眼睛闭合!');
-        } else if (this.referenceValues.eyeClosed && ratio > config.blink.openThreshold) {
+        // 检测眨眼: 比例低于阈值即完成
+        if (ratio < config.blink.threshold) {
             if (!this.detectionState.blink) {
                 if (config.debug) console.log('眨眼完成!');
                 this.completeCurrentAction('blink');
@@ -300,14 +319,10 @@ export class LivenessDetector {
         
         const mouthOpen = Math.abs(lowerLip.y - upperLip.y);
         
-        if (config.debug) console.log(`嘴巴张开度: ${mouthOpen.toFixed(3)}, 张开过: ${this.referenceValues.mouthOpened}`);
+        if (config.debug) console.log(`嘴巴张开度: ${mouthOpen.toFixed(3)}`);
         
-        // 张嘴-闭嘴 两个动作才算完成
-        if (mouthOpen > config.mouth.openThreshold) {
-            this.referenceValues.mouthOpened = true;
-            if (config.debug) console.log('检测到嘴巴张开!');
-        } else if (this.referenceValues.mouthOpened && mouthOpen < config.mouth.closeThreshold) {
-            // 嘴巴闭合
+        // 张嘴: 达到阈值即完成
+        if (mouthOpen > config.mouth.threshold) {
             if (!this.detectionState.openMouth) {
                 if (config.debug) console.log('张嘴完成!');
                 this.completeCurrentAction('openMouth');
@@ -338,13 +353,13 @@ export class LivenessDetector {
         // 语音播报完成
         this.speakComplete(action);
         
+        // 触发动作完成回调
+        if (this.onActionComplete) {
+            this.onActionComplete(action, this.currentActionIndex + 1, this.actions.length);
+        }
+        
         // 重置参考值
         this.referenceValues.nosePosition = null;
-        this.referenceValues.eyeClosed = false;
-        this.referenceValues.mouthOpened = false;
-        this.referenceValues.turnedLeft = false;
-        this.referenceValues.turnedRight = false;
-        this.referenceValues.nodded = false;
         this.referenceValues.maxEAR = 0;
         this.referenceValues.earHistory = [];
         
@@ -425,6 +440,11 @@ export class LivenessDetector {
         
         this.resultContainer.style.display = 'block';
         this.captureBtn.disabled = true;
+        
+        // 触发完成回调
+        if (this.onComplete) {
+            this.onComplete(this.capturedBase64);
+        }
         
         console.log('Base64 图片已采集，长度:', this.capturedBase64.length);
     }

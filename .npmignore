@@ -1,0 +1,17 @@
+# 源码目录（只发布打包后的dist）
+src/
+face-api.js/
+public/
+
+# 开发配置
+vite.config.js
+index.html
+download-models.js
+
+# 依赖
+node_modules/
+
+# 其他
+*.log
+.git
+.gitignore
