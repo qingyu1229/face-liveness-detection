@@ -1,12 +1,14 @@
-# 源码目录（只发布打包后的dist）
-src/
+# 源码目录
 face-api.js/
 public/
+demo/
+uniapp/
+
+# 旧模型文件
+dist/models/
 
 # 开发配置
 vite.config.js
-index.html
-download-models.js
 
 # 依赖
 node_modules/
