@@ -1,0 +1,21 @@
+{
+  "name": "face-liveness-detection",
+  "version": "1.0.0",
+  "description": "A frontend-only solution for face liveness detection",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite --host",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "keywords": ["face", "liveness", "detection"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^4.0.0"
+  },
+  "dependencies": {
+    "@mediapipe/face_mesh": "^0.4.1633559619",
+    "@mediapipe/camera_utils": "^0.3.1640029074"
+  }
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人脸活体检测</title>
+    <link rel="stylesheet" href="./src/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>人脸活体检测系统</h1>
+        <div class="instructions">
+            <p>请按照以下步骤完成活体检测：</p>
+            <ol>
+                <li>点击"开始检测"按钮</li>
+                <li>将脸部正对摄像头</li>
+                <li>按指示完成动作：向左转头、向右转头、眨眼、张嘴</li>
+                <li>完成所有动作后，系统会自动拍照</li>
+            </ol>
+        </div>
+        
+        <div class="camera-container">
+            <video id="video" width="640" height="480" autoplay muted></video>
+            <canvas id="canvas" width="640" height="480"></canvas>
+        </div>
+        
+        <div class="actions">
+            <button id="startBtn">开始检测</button>
+            <button id="captureBtn" disabled>手动拍照</button>
+        </div>
+        
+        <div class="status">
+            <h3>检测状态:</h3>
+            <ul id="statusList">
+                <li id="faceDetected">🔍 检测人脸</li>
+                <li id="turnLeft">👈 向左转头</li>
+                <li id="turnRight">👉 向右转头</li>
+                <li id="nod">🙌 点头</li>
+                <li id="blink">👁️ 眨眼</li>
+                <li id="openMouth">👄 张嘴</li>
+            </ul>
+        </div>
+        
+        <div class="result" id="resultContainer" style="display:none;">
+            <h3>检测结果:</h3>
+            <img id="capturedImage" alt="Captured image">
+            <p>活体检测已完成，照片已准备好用于上传。</p>
+            <button id="uploadBtn">上传照片</button>
+        </div>
+    </div>
+    
+    <script type="module" src="./src/js/main.js"></script>
+</body>
+</html>
