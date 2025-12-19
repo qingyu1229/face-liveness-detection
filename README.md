@@ -11,7 +11,21 @@ npm install face-liveness-detection
 ## 快速开始
 
 ```javascript
-import { createLivenessDetector } from 'face-liveness-detection';
+import { checkSupport, checkCameraPermission, createLivenessDetector } from 'face-liveness-detection';
+
+// 检测环境支持
+const support = checkSupport();
+if (!support.supported) {
+    console.error('不支持活体检测:', support.reasons);
+    return;
+}
+
+// 检测摄像头权限
+const permission = await checkCameraPermission();
+if (!permission.granted) {
+    console.error(permission.message);
+    return;
+}
 
 const detector = createLivenessDetector({
     videoElement: document.getElementById('video'),
@@ -127,6 +141,39 @@ const config = {
 | 点头 | `nod` | 低头达到阈值 |
 
 ## API
+
+### checkSupport()
+
+检测当前环境是否支持活体检测。
+
+```javascript
+const { supported, reasons } = checkSupport();
+// supported: boolean - 是否支持
+// reasons: string[] - 不支持的原因列表
+```
+
+检测项：
+- 浏览器环境
+- 摄像头访问 (getUserMedia)
+- WebAssembly 支持
+- HTTPS 或 localhost
+- Canvas 2D 支持
+
+### checkCameraPermission()
+
+检测摄像头权限（异步）。
+
+```javascript
+const { granted, error, message } = await checkCameraPermission();
+if (!granted) {
+    console.error(message); // "摄像头权限被拒绝..."
+}
+```
+
+错误类型：
+- `NotAllowedError` - 权限被拒绝
+- `NotFoundError` - 无摄像头设备
+- `NotReadableError` - 摄像头被占用
 
 ### createLivenessDetector(options)
 

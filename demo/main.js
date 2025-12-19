@@ -4,7 +4,7 @@
  */
 
 // 从本地包导入（发布后改为 'face-liveness-detection'）
-import { createLivenessDetector, updateConfig } from '../src/js/index.js';
+import { createLivenessDetector, updateConfig, checkSupport, checkCameraPermission } from '../src/js/index.js';
 
 // DOM 元素
 const video = document.getElementById('video');
@@ -78,6 +78,20 @@ function setConfigEnabled(enabled) {
 
 // 开始检测
 async function startDetection() {
+    // 检测环境支持
+    const support = checkSupport();
+    if (!support.supported) {
+        alert('当前环境不支持: ' + support.reasons.join(', '));
+        return;
+    }
+    
+    // 检测摄像头权限
+    const permission = await checkCameraPermission();
+    if (!permission.granted) {
+        alert(permission.message);
+        return;
+    }
+    
     const actions = getSelectedActions();
     if (actions.length === 0) {
         alert('请至少选择一个检测动作');

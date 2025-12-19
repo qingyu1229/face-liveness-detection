@@ -77,6 +77,19 @@ export class LivenessDetector {
     getBase64Image(): string | null;
 }
 
+export interface SupportResult {
+    supported: boolean;
+    reasons: string[];
+}
+
+export interface CameraPermissionResult {
+    granted: boolean;
+    error?: string;
+    message?: string;
+}
+
+export function checkSupport(): SupportResult;
+export function checkCameraPermission(): Promise<CameraPermissionResult>;
 export function createLivenessDetector(options: LivenessDetectorOptions): LivenessDetector;
 export function getDefaultConfig(): LivenessConfig;
 export function updateConfig(config: Partial<LivenessConfig>): void;

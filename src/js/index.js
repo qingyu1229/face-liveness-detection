@@ -6,6 +6,86 @@
 import { LivenessDetector } from './livenessDetection.js';
 import { config as defaultConfig } from './config.js';
 
+/**
+ * 检测摄像头权限
+ * @returns {Promise<Object>} { granted: boolean, error?: string, message?: string }
+ */
+export async function checkCameraPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // 立即释放
+        stream.getTracks().forEach(track => track.stop());
+        return { granted: true };
+    } catch (error) {
+        return {
+            granted: false,
+            error: error.name,
+            message: getCameraErrorMessage(error.name)
+        };
+    }
+}
+
+/**
+ * 获取摄像头错误提示信息
+ */
+function getCameraErrorMessage(errorName) {
+    const messages = {
+        'NotAllowedError': '摄像头权限被拒绝，请在浏览器设置中允许访问摄像头',
+        'NotFoundError': '未检测到摄像头设备',
+        'NotReadableError': '摄像头被其他程序占用',
+        'OverconstrainedError': '摄像头不支持请求的配置',
+        'SecurityError': '安全错误，请使用 HTTPS 访问',
+        'AbortError': '摄像头访问被中断'
+    };
+    return messages[errorName] || '摄像头访问失败';
+}
+
+/**
+ * 检测当前环境是否支持活体检测
+ * @returns {Object} { supported: boolean, reasons: string[] }
+ */
+export function checkSupport() {
+    const reasons = [];
+    
+    // 检测浏览器环境
+    if (typeof window === 'undefined') {
+        reasons.push('需要浏览器环境');
+    }
+    
+    // 检测 getUserMedia
+    if (!navigator?.mediaDevices?.getUserMedia) {
+        reasons.push('不支持摄像头访问 (getUserMedia)');
+    }
+    
+    // 检测 WebAssembly
+    if (typeof WebAssembly === 'undefined') {
+        reasons.push('不支持 WebAssembly');
+    }
+    
+    // 检测 HTTPS 或 localhost
+    if (typeof location !== 'undefined') {
+        const isSecure = location.protocol === 'https:' || 
+                        location.hostname === 'localhost' || 
+                        location.hostname === '127.0.0.1';
+        if (!isSecure) {
+            reasons.push('需要 HTTPS 或 localhost 环境');
+        }
+    }
+    
+    // 检测 Canvas
+    if (typeof document !== 'undefined') {
+        const canvas = document.createElement('canvas');
+        if (!canvas.getContext('2d')) {
+            reasons.push('不支持 Canvas 2D');
+        }
+    }
+    
+    return {
+        supported: reasons.length === 0,
+        reasons
+    };
+}
+
 // 默认配置
 const DEFAULT_CONFIG = { ...defaultConfig };
 
