@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,23 +21,23 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 800px;
             width: 100%;
         }
-        
+
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 20px;
             font-size: 24px;
         }
-        
+
         .camera-wrapper {
             position: relative;
             width: 100%;
@@ -46,39 +47,40 @@
             overflow: hidden;
             background: #000;
         }
-        
-        #video, #canvas {
+
+        #video,
+        #canvas {
             width: 100%;
             display: block;
         }
-        
+
         #canvas {
             position: absolute;
             top: 0;
             left: 0;
             pointer-events: none;
         }
-        
+
         .status-panel {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
         }
-        
+
         .status-panel h3 {
             margin-bottom: 15px;
             color: #555;
             font-size: 16px;
         }
-        
+
         .status-list {
             list-style: none;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         .status-item {
             display: none;
             align-items: center;
@@ -90,33 +92,40 @@
             font-size: 14px;
             transition: all 0.3s;
         }
-        
+
         .status-item.visible {
             display: flex;
         }
-        
+
         .status-item.current {
             background: #fff3cd;
             color: #856404;
             animation: pulse 1.5s infinite;
         }
-        
+
         .status-item.completed {
             background: #d4edda;
             color: #155724;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
-        
+
         .btn-group {
             display: flex;
             gap: 15px;
             justify-content: center;
         }
-        
+
         .btn {
             padding: 12px 30px;
             border: none;
@@ -125,81 +134,81 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-primary:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-        
+
         .btn-secondary {
             background: #6c757d;
             color: white;
         }
-        
+
         .result-panel {
             display: none;
             margin-top: 20px;
             text-align: center;
         }
-        
+
         .result-panel img {
             max-width: 300px;
             border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
         }
-        
+
         .result-panel h3 {
             margin: 15px 0;
             color: #28a745;
         }
-        
+
         .config-panel {
             background: #f0f4f8;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
         }
-        
+
         .config-panel h3 {
             margin-bottom: 15px;
             color: #555;
         }
-        
+
         .config-row {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 15px;
         }
-        
+
         .config-item {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         .config-item label {
             font-size: 14px;
             color: #666;
         }
-        
+
         .config-item input[type="checkbox"] {
             width: 18px;
             height: 18px;
         }
-        
+
         .config-item select {
             padding: 6px 12px;
             border-radius: 6px;
@@ -207,10 +216,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🔐 人脸活体检测</h1>
-        
+
         <!-- 配置面板 -->
         <div class="config-panel">
             <h3>⚙️ 检测配置</h3>
@@ -250,13 +260,13 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- 摄像头 -->
         <div class="camera-wrapper">
             <video id="video" width="640" height="480" autoplay muted playsinline></video>
             <canvas id="canvas" width="640" height="480"></canvas>
         </div>
-        
+
         <!-- 状态面板 -->
         <div class="status-panel">
             <h3>📋 检测进度</h3>
@@ -269,13 +279,13 @@
                 <li id="nod" class="status-item">🙌 点头</li>
             </ul>
         </div>
-        
+
         <!-- 按钮 -->
         <div class="btn-group">
             <button id="startBtn" class="btn btn-primary">开始检测</button>
             <button id="retryBtn" class="btn btn-secondary" style="display:none;">重新检测</button>
         </div>
-        
+
         <!-- 结果 -->
         <div id="resultContainer" class="result-panel">
             <h3>✅ 活体检测通过</h3>
@@ -285,4 +295,5 @@
 
     <script type="module" src="./main.js"></script>
 </body>
+
 </html>

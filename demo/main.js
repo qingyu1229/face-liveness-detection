@@ -4,7 +4,12 @@
  */
 
 // 从本地包导入（发布后改为 'face-liveness-detection'）
-import { createLivenessDetector, updateConfig, checkSupport, checkCameraPermission } from '../src/js/index.js';
+import {
+    createLivenessDetector,
+    updateConfig,
+    checkSupport,
+    checkCameraPermission
+} from '../src/js/index.js';
 
 // DOM 元素
 const video = document.getElementById('video');
@@ -71,7 +76,7 @@ function resetStatus() {
 
 // 禁用/启用配置
 function setConfigEnabled(enabled) {
-    Object.values(actionCheckboxes).forEach(cb => cb.disabled = !enabled);
+    Object.values(actionCheckboxes).forEach(cb => (cb.disabled = !enabled));
     actionOrderSelect.disabled = !enabled;
     enableVoiceCheckbox.disabled = !enabled;
 }
@@ -84,31 +89,31 @@ async function startDetection() {
         alert('当前环境不支持: ' + support.reasons.join(', '));
         return;
     }
-    
+
     // 检测摄像头权限
     const permission = await checkCameraPermission();
     if (!permission.granted) {
         alert(permission.message);
         return;
     }
-    
+
     const actions = getSelectedActions();
     if (actions.length === 0) {
         alert('请至少选择一个检测动作');
         return;
     }
-    
+
     resetStatus();
     setConfigEnabled(false);
     startBtn.disabled = true;
     startBtn.textContent = '检测中...';
     retryBtn.style.display = 'none';
-    
+
     try {
-        // 更新配置
-        updateConfig(getUserConfig());
-        
-        // 创建检测器
+        // 获取用户配置
+        const userConfig = getUserConfig();
+
+        // 创建检测器（传入配置）
         detector = createLivenessDetector({
             videoElement: video,
             canvasElement: canvas,
@@ -116,7 +121,8 @@ async function startDetection() {
             captureBtn: startBtn,
             resultContainer: resultContainer,
             capturedImage: capturedImage,
-            onComplete: (base64) => {
+            config: userConfig, // 传入用户配置
+            onComplete: base64 => {
                 console.log('检测完成，Base64 长度:', base64.length);
                 startBtn.style.display = 'none';
                 retryBtn.style.display = 'inline-block';
@@ -124,15 +130,14 @@ async function startDetection() {
             onActionComplete: (action, current, total) => {
                 console.log(`完成动作: ${action} (${current}/${total})`);
             },
-            onError: (error) => {
+            onError: error => {
                 console.error('检测错误:', error);
                 alert('检测错误: ' + error.message);
             }
         });
-        
+
         // 开始检测
         await detector.start();
-        
     } catch (error) {
         console.error('启动失败:', error);
         alert('启动失败: ' + error.message);

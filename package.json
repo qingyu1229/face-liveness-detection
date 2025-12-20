@@ -1,6 +1,6 @@
 {
   "name": "face-liveness-detection",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A frontend-only solution for face liveness detection using MediaPipe Face Mesh",
   "main": "dist/face-liveness-detection.umd.js",
   "module": "dist/face-liveness-detection.es.js",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/aliujun/face-liveness-detection"
   },
   "peerDependencies": {
     "@mediapipe/face_mesh": "^0.4.0",

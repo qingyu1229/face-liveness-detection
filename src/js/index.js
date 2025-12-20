@@ -4,7 +4,7 @@
  */
 
 import { LivenessDetector } from './livenessDetection.js';
-import { config as defaultConfig } from './config.js';
+import { config } from './config.js';
 
 /**
  * 检测摄像头权限
@@ -30,12 +30,12 @@ export async function checkCameraPermission() {
  */
 function getCameraErrorMessage(errorName) {
     const messages = {
-        'NotAllowedError': '摄像头权限被拒绝，请在浏览器设置中允许访问摄像头',
-        'NotFoundError': '未检测到摄像头设备',
-        'NotReadableError': '摄像头被其他程序占用',
-        'OverconstrainedError': '摄像头不支持请求的配置',
-        'SecurityError': '安全错误，请使用 HTTPS 访问',
-        'AbortError': '摄像头访问被中断'
+        NotAllowedError: '摄像头权限被拒绝，请在浏览器设置中允许访问摄像头',
+        NotFoundError: '未检测到摄像头设备',
+        NotReadableError: '摄像头被其他程序占用',
+        OverconstrainedError: '摄像头不支持请求的配置',
+        SecurityError: '安全错误，请使用 HTTPS 访问',
+        AbortError: '摄像头访问被中断'
     };
     return messages[errorName] || '摄像头访问失败';
 }
@@ -46,32 +46,33 @@ function getCameraErrorMessage(errorName) {
  */
 export function checkSupport() {
     const reasons = [];
-    
+
     // 检测浏览器环境
     if (typeof window === 'undefined') {
         reasons.push('需要浏览器环境');
     }
-    
+
     // 检测 getUserMedia
     if (!navigator?.mediaDevices?.getUserMedia) {
         reasons.push('不支持摄像头访问 (getUserMedia)');
     }
-    
+
     // 检测 WebAssembly
     if (typeof WebAssembly === 'undefined') {
         reasons.push('不支持 WebAssembly');
     }
-    
+
     // 检测 HTTPS 或 localhost
     if (typeof location !== 'undefined') {
-        const isSecure = location.protocol === 'https:' || 
-                        location.hostname === 'localhost' || 
-                        location.hostname === '127.0.0.1';
+        const isSecure =
+            location.protocol === 'https:' ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1';
         if (!isSecure) {
             reasons.push('需要 HTTPS 或 localhost 环境');
         }
     }
-    
+
     // 检测 Canvas
     if (typeof document !== 'undefined') {
         const canvas = document.createElement('canvas');
@@ -79,15 +80,15 @@ export function checkSupport() {
             reasons.push('不支持 Canvas 2D');
         }
     }
-    
+
     return {
         supported: reasons.length === 0,
         reasons
     };
 }
 
-// 默认配置
-const DEFAULT_CONFIG = { ...defaultConfig };
+// 默认配置（备份）
+const DEFAULT_CONFIG = { ...config };
 
 /**
  * 创建活体检测器实例
@@ -106,7 +107,7 @@ export function createLivenessDetector(options) {
     if (options.config) {
         mergeConfig(options.config);
     }
-    
+
     return new LivenessDetector({
         videoElement: options.videoElement,
         canvasElement: options.canvasElement,
@@ -125,14 +126,20 @@ export function createLivenessDetector(options) {
  * @param {Object} userConfig - 用户配置
  */
 function mergeConfig(userConfig) {
-    // 深度合并配置
+    // 调试：打印传入的用户配置
+    console.log('传入 mergeConfig 的 userConfig.actions:', userConfig.actions);
+
+    // 深度合并配置到 config 对象
     Object.keys(userConfig).forEach(key => {
         if (typeof userConfig[key] === 'object' && !Array.isArray(userConfig[key])) {
-            defaultConfig[key] = { ...defaultConfig[key], ...userConfig[key] };
+            config[key] = { ...config[key], ...userConfig[key] };
         } else {
-            defaultConfig[key] = userConfig[key];
+            config[key] = userConfig[key];
         }
     });
+
+    // 调试：打印合并后的配置
+    console.log('mergeConfig 执行后，config.actions:', config.actions);
 }
 
 /**
