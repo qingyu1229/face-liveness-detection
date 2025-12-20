@@ -32,6 +32,21 @@ export const config = {
         threshold: 0.07 // 张嘴阈值
     },
 
+    // 人脸区域检测
+    faceArea: {
+        enabled: true, // 是否启用区域检测
+        circleRatio: 0.6, // 圆形直径占画面宽度比例（0.6 = 60%）
+        stayDuration: 1000, // 初始停留时间（毫秒）
+        strictMode: false, // 是否严格模式（true: 整个人脸必须在圆内，false: 人脸中心在圆内即可）
+
+        // UI配置
+        borderWidth: 4, // 边框宽度
+        borderColors: ['#00FF00', '#00FFFF', '#0080FF', '#FF00FF'], // 动态变化的颜色
+        colorChangeInterval: 500, // 颜色变化间隔（毫秒）
+        maskOpacity: 0.8, // 黑色遮罩透明度
+        promptText: '请将人脸移入检测区域' // 提示文字
+    },
+
     // 动作列表
     actions: ['blink', 'openMouth', 'turnLeft', 'turnRight', 'nod'],
 

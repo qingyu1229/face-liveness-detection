@@ -3,6 +3,7 @@ face-api.js/
 public/
 demo/
 uniapp/
+src/css/
 
 # 旧模型文件
 dist/models/
@@ -13,7 +14,11 @@ vite.config.js
 # 依赖
 node_modules/
 
-# 其他
+# 日志
+log.txt
 *.log
+
+# 其他
 .git
 .gitignore
+.DS_Store

@@ -33,11 +33,24 @@ export interface HeadConfig {
     nod: number;
 }
 
+export interface FaceAreaConfig {
+    enabled: boolean;
+    circleRatio: number;
+    stayDuration: number;
+    strictMode: boolean;
+    borderWidth: number;
+    borderColors: string[];
+    colorChangeInterval: number;
+    maskOpacity: number;
+    promptText: string;
+}
+
 export interface LivenessConfig {
     voice: VoiceConfig;
     blink: BlinkConfig;
     mouth: MouthConfig;
     head: HeadConfig;
+    faceArea: FaceAreaConfig;
     actions: ActionType[];
     actionOrder: 'random' | 'fixed';
     debug: boolean;
