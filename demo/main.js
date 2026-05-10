@@ -81,25 +81,34 @@ function setConfigEnabled(enabled) {
     enableVoiceCheckbox.disabled = !enabled;
 }
 
-// 开始检测
+// 添加日志以测量每个步骤的耗时
 async function startDetection() {
+    console.time('startDetection');
+
     // 检测环境支持
+    console.time('checkSupport');
     const support = checkSupport();
+    console.timeEnd('checkSupport');
     if (!support.supported) {
         alert('当前环境不支持: ' + support.reasons.join(', '));
+        console.timeEnd('startDetection');
         return;
     }
 
     // 检测摄像头权限
+    console.time('checkCameraPermission');
     const permission = await checkCameraPermission();
+    console.timeEnd('checkCameraPermission');
     if (!permission.granted) {
         alert(permission.message);
+        console.timeEnd('startDetection');
         return;
     }
 
     const actions = getSelectedActions();
     if (actions.length === 0) {
         alert('请至少选择一个检测动作');
+        console.timeEnd('startDetection');
         return;
     }
 
@@ -111,9 +120,12 @@ async function startDetection() {
 
     try {
         // 获取用户配置
+        console.time('getUserConfig');
         const userConfig = getUserConfig();
+        console.timeEnd('getUserConfig');
 
         // 创建检测器（传入配置）
+        console.time('createLivenessDetector');
         detector = createLivenessDetector({
             videoElement: video,
             canvasElement: canvas,
@@ -135,9 +147,12 @@ async function startDetection() {
                 alert('检测错误: ' + error.message);
             }
         });
+        console.timeEnd('createLivenessDetector');
 
         // 开始检测
+        console.time('detector.start');
         await detector.start();
+        console.timeEnd('detector.start');
     } catch (error) {
         console.error('启动失败:', error);
         alert('启动失败: ' + error.message);
@@ -145,6 +160,8 @@ async function startDetection() {
         startBtn.textContent = '开始检测';
         setConfigEnabled(true);
     }
+
+    console.timeEnd('startDetection');
 }
 
 // 重新检测
