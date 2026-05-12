@@ -3,10 +3,8 @@
  * 演示如何使用 face-liveness-detection 包
  */
 
-// 从本地包导入（发布后改为 'face-liveness-detection'）
 import {
     createLivenessDetector,
-    updateConfig,
     checkSupport,
     checkCameraPermission
 } from '../src/js/index.js';
@@ -14,6 +12,8 @@ import {
 // DOM 元素
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
+const cameraWrapper = document.getElementById('cameraWrapper');
+
 const startBtn = document.getElementById('startBtn');
 const retryBtn = document.getElementById('retryBtn');
 const resultContainer = document.getElementById('resultContainer');
@@ -42,7 +42,17 @@ const enableVoiceCheckbox = document.getElementById('enableVoice');
 
 let detector = null;
 
-// 获取用户配置的动作列表
+// ==================== 新增：摄像头镜像控制 ====================
+function applyMirrorEffect() {
+    const isFrontCamera = true; // 如果以后支持后置摄像头，可改为动态判断
+
+    if (isFrontCamera) {
+        video.style.transform = 'scaleX(-1)';   // 显示时翻转回来（用户看到正常方向）
+        canvas.style.transform = 'scaleX(-1)';  // Canvas也同步
+    }
+}
+
+// 获取用户配置
 function getSelectedActions() {
     const actions = [];
     if (actionCheckboxes.blink.checked) actions.push('blink');
@@ -53,19 +63,28 @@ function getSelectedActions() {
     return actions;
 }
 
-// 获取用户配置
 function getUserConfig() {
     return {
         actions: getSelectedActions(),
         actionOrder: actionOrderSelect.value,
-        voice: {
-            enabled: enableVoiceCheckbox.checked
-        },
+        voice: { enabled: enableVoiceCheckbox.checked },
         debug: true
     };
 }
 
-// 重置状态显示
+// 同步 canvas 与 video 实际尺寸（关键修复）
+function syncCanvasSize() {
+    if (video.videoWidth && video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // 动态更新容器宽高比（适配手机不同分辨率）
+        const ratio = video.videoWidth / video.videoHeight;
+        cameraWrapper.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+    }
+}
+
+// 重置状态
 function resetStatus() {
     Object.values(statusElements).forEach(el => {
         el.classList.remove('current', 'completed', 'visible');
@@ -74,41 +93,28 @@ function resetStatus() {
     resultContainer.style.display = 'none';
 }
 
-// 禁用/启用配置
 function setConfigEnabled(enabled) {
     Object.values(actionCheckboxes).forEach(cb => (cb.disabled = !enabled));
     actionOrderSelect.disabled = !enabled;
     enableVoiceCheckbox.disabled = !enabled;
 }
 
-// 添加日志以测量每个步骤的耗时
+// 开始检测
 async function startDetection() {
-    console.time('startDetection');
-
-    // 检测环境支持
-    console.time('checkSupport');
     const support = checkSupport();
-    console.timeEnd('checkSupport');
     if (!support.supported) {
         alert('当前环境不支持: ' + support.reasons.join(', '));
-        console.timeEnd('startDetection');
         return;
     }
 
-    // 检测摄像头权限
-    console.time('checkCameraPermission');
     const permission = await checkCameraPermission();
-    console.timeEnd('checkCameraPermission');
     if (!permission.granted) {
         alert(permission.message);
-        console.timeEnd('startDetection');
         return;
     }
 
-    const actions = getSelectedActions();
-    if (actions.length === 0) {
+    if (getSelectedActions().length === 0) {
         alert('请至少选择一个检测动作');
-        console.timeEnd('startDetection');
         return;
     }
 
@@ -119,13 +125,6 @@ async function startDetection() {
     retryBtn.style.display = 'none';
 
     try {
-        // 获取用户配置
-        console.time('getUserConfig');
-        const userConfig = getUserConfig();
-        console.timeEnd('getUserConfig');
-
-        // 创建检测器（传入配置）
-        console.time('createLivenessDetector');
         detector = createLivenessDetector({
             videoElement: video,
             canvasElement: canvas,
@@ -133,26 +132,18 @@ async function startDetection() {
             captureBtn: startBtn,
             resultContainer: resultContainer,
             capturedImage: capturedImage,
-            config: userConfig, // 传入用户配置
+            config: getUserConfig(),
             onComplete: base64 => {
-                console.log('检测完成，Base64 长度:', base64.length);
                 startBtn.style.display = 'none';
                 retryBtn.style.display = 'inline-block';
-            },
-            onActionComplete: (action, current, total) => {
-                console.log(`完成动作: ${action} (${current}/${total})`);
             },
             onError: error => {
                 console.error('检测错误:', error);
                 alert('检测错误: ' + error.message);
             }
         });
-        console.timeEnd('createLivenessDetector');
 
-        // 开始检测
-        console.time('detector.start');
         await detector.start();
-        console.timeEnd('detector.start');
     } catch (error) {
         console.error('启动失败:', error);
         alert('启动失败: ' + error.message);
@@ -160,8 +151,6 @@ async function startDetection() {
         startBtn.textContent = '开始检测';
         setConfigEnabled(true);
     }
-
-    console.timeEnd('startDetection');
 }
 
 // 重新检测
@@ -171,6 +160,13 @@ function retryDetection() {
 
 // 初始化
 function init() {
+    // 关键：视频元数据加载完成后同步尺寸
+      video.addEventListener('loadedmetadata', () => {
+        syncCanvasSize();
+        applyMirrorEffect();        // ← 新增
+    });
+    video.addEventListener('resize', syncCanvasSize);   // 兼容某些设备
+
     startBtn.addEventListener('click', startDetection);
     retryBtn.addEventListener('click', retryDetection);
 }

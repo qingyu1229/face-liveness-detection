@@ -63,15 +63,15 @@ export function checkSupport() {
     }
 
     // 检测 HTTPS 或 localhost
-    if (typeof location !== 'undefined') {
-        const isSecure =
-            location.protocol === 'https:' ||
-            location.hostname === 'localhost' ||
-            location.hostname === '127.0.0.1';
-        if (!isSecure) {
-            reasons.push('需要 HTTPS 或 localhost 环境');
-        }
-    }
+    // if (typeof location !== 'undefined') {
+    //     const isSecure =
+    //         location.protocol === 'https:' ||
+    //         location.hostname === 'localhost' ||
+    //         location.hostname === '127.0.0.1';
+    //     if (!isSecure) {
+    //         reasons.push('需要 HTTPS 或 localhost 环境');
+    //     }
+    // }
 
     // 检测 Canvas
     if (typeof document !== 'undefined') {

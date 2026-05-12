@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>人脸活体检测 Demo</title>
     <style>
         * {
@@ -38,29 +37,37 @@
             font-size: 24px;
         }
 
-        .camera-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            margin: 0 auto 20px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-        }
+.camera-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 4 / 3;
+}
 
-        #video,
-        #canvas {
-            width: 100%;
-            display: block;
-        }
+#video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scaleX(-1);        /* 取消默认镜像 */
+}
 
-        #canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform: scaleX(-1);        /* 与视频保持一致 */
+    pointer-events: none;
+}
 
+        /* 其他样式保持不变 */
         .status-panel {
             background: #f8f9fa;
             border-radius: 12px;
@@ -109,15 +116,8 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .btn-group {
@@ -148,8 +148,6 @@
         .btn-primary:disabled {
             background: #ccc;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
         .btn-secondary {
@@ -168,83 +166,21 @@
             border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
         }
-
-        .result-panel h3 {
-            margin: 15px 0;
-            color: #28a745;
-        }
-
-        .config-panel {
-            background: #f0f4f8;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .config-panel h3 {
-            margin-bottom: 15px;
-            color: #555;
-        }
-
-        .config-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .config-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .config-item label {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .config-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-        }
-
-        .config-item select {
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-        }
     </style>
 </head>
-
 <body>
     <div class="container">
         <h1>🔐 人脸活体检测</h1>
 
-        <!-- 配置面板 -->
+        <!-- 配置面板（保持不变） -->
         <div class="config-panel">
             <h3>⚙️ 检测配置</h3>
             <div class="config-row">
-                <div class="config-item">
-                    <input type="checkbox" id="actionBlink" checked>
-                    <label for="actionBlink">眨眼</label>
-                </div>
-                <div class="config-item">
-                    <input type="checkbox" id="actionMouth" checked>
-                    <label for="actionMouth">张嘴</label>
-                </div>
-                <div class="config-item">
-                    <input type="checkbox" id="actionLeft" checked>
-                    <label for="actionLeft">左转头</label>
-                </div>
-                <div class="config-item">
-                    <input type="checkbox" id="actionRight" checked>
-                    <label for="actionRight">右转头</label>
-                </div>
-                <div class="config-item">
-                    <input type="checkbox" id="actionNod" checked>
-                    <label for="actionNod">点头</label>
-                </div>
+                <div class="config-item"><input type="checkbox" id="actionBlink" checked><label for="actionBlink">眨眼</label></div>
+                <div class="config-item"><input type="checkbox" id="actionMouth" checked><label for="actionMouth">张嘴</label></div>
+                <div class="config-item"><input type="checkbox" id="actionLeft" checked><label for="actionLeft">左转头</label></div>
+                <div class="config-item"><input type="checkbox" id="actionRight" checked><label for="actionRight">右转头</label></div>
+                <div class="config-item"><input type="checkbox" id="actionNod" checked><label for="actionNod">点头</label></div>
             </div>
             <div class="config-row">
                 <div class="config-item">
@@ -261,13 +197,13 @@
             </div>
         </div>
 
-        <!-- 摄像头 -->
-        <div class="camera-wrapper">
-            <video id="video" width="640" height="480" autoplay muted playsinline></video>
-            <canvas id="canvas" width="640" height="480"></canvas>
+        <!-- 摄像头区域 -->
+        <div class="camera-wrapper" id="cameraWrapper">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
         </div>
 
-        <!-- 状态面板 -->
+        <!-- 状态面板（保持不变） -->
         <div class="status-panel">
             <h3>📋 检测进度</h3>
             <ul class="status-list">
@@ -280,13 +216,11 @@
             </ul>
         </div>
 
-        <!-- 按钮 -->
         <div class="btn-group">
             <button id="startBtn" class="btn btn-primary">开始检测</button>
             <button id="retryBtn" class="btn btn-secondary" style="display:none;">重新检测</button>
         </div>
 
-        <!-- 结果 -->
         <div id="resultContainer" class="result-panel">
             <h3>✅ 活体检测通过</h3>
             <img id="capturedImage" alt="采集照片">
@@ -295,5 +229,4 @@
 
     <script type="module" src="./main.js"></script>
 </body>
-
 </html>

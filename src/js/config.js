@@ -35,7 +35,7 @@ export const config = {
     // 人脸区域检测
     faceArea: {
         enabled: true, // 是否启用区域检测
-        circleRatio: 0.6, // 圆形直径占画面宽度比例（0.6 = 60%）
+        circleRatio: 0.8, // 圆形直径占画面宽度比例（0.8 = 80%）
         stayDuration: 1000, // 初始停留时间（毫秒）
         strictMode: false, // 是否严格模式（true: 整个人脸必须在圆内，false: 人脸中心在圆内即可）
 
